@@ -23,10 +23,10 @@ Built for hackathons, dorms, apartments, and anyone tired of “who owes who?”
 ![date--fns](https://img.shields.io/badge/date--fns-dates-770C56)
 ![lucide](https://img.shields.io/badge/lucide-react-icons-111827)
 
-![Stars](https://img.shields.io/github/stars/<your-org-or-user>/<your-repo>?style=flat)
-![Forks](https://img.shields.io/github/forks/<your-org-or-user>/<your-repo>?style=flat)
-![Issues](https://img.shields.io/github/issues/<your-org-or-user>/<your-repo>?style=flat)
-![Last Commit](https://img.shields.io/github/last-commit/<your-org-or-user>/<your-repo>?style=flat)
+![Stars](https://img.shields.io/github/stars/joani-k/ice-scope-th?style=flat)
+![Forks](https://img.shields.io/github/forks/joani-k/ice-scope-th?style=flat)
+![Issues](https://img.shields.io/github/issues/joani-k/ice-scope-th?style=flat)
+![Last Commit](https://img.shields.io/github/last-commit/joani-k/ice-scope-th?style=flat)
 
 ---
 
