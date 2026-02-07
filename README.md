@@ -178,6 +178,8 @@ Expenses per group:
 - split metadata (equal/exact/percent)
 - optional recurring + receipt URL
 
+![Database schema](assets/db_schema.png)
+
 ---
 
 ## 🔐 Security (RLS)
