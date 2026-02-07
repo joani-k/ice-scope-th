@@ -144,6 +144,8 @@ Roomies Ledger lets you:
   - Postgres tables + RLS policies
   - Auth + profiles trigger
   - SQL RPCs for group creation + join by invite code
+ 
+  ![Architecture Diagram](assets/ac_diag.png)
 
 ---
 
