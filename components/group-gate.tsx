@@ -9,7 +9,68 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Copy, Share2, Users, Plus, Check } from "lucide-react"
+import { ArrowLeft, Copy, Share2, Users, Plus, Check, Loader2, Home, ChevronRight } from "lucide-react"
+
+function GroupSelector() {
+  const { groups, switchGroup, setGroupGateView, backToMain } = useStore()
+
+  const handleSelectGroup = (groupId: string) => {
+    switchGroup(groupId)
+    backToMain()
+  }
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="text-center mb-1">
+        <p className="text-sm text-muted-foreground">Choose a household to continue</p>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        {groups.map((g) => (
+          <button
+            key={g.id}
+            onClick={() => handleSelectGroup(g.id)}
+            className="flex items-center gap-4 p-4 rounded-xl bg-secondary/40 hover:bg-secondary/70 border border-border/30 hover:border-border/50 transition-all text-left group"
+          >
+            <div className="flex items-center justify-center h-11 w-11 rounded-xl bg-primary/10 text-primary shrink-0">
+              <Home className="h-5 w-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-base font-semibold text-foreground truncate">{g.name}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {g.members.length} member{g.members.length !== 1 ? "s" : ""} &middot; {g.currency}
+              </p>
+            </div>
+            <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors shrink-0" />
+          </button>
+        ))}
+      </div>
+
+      <div className="relative flex items-center gap-3 my-1">
+        <div className="flex-1 h-px bg-border/40" />
+        <span className="text-xs text-muted-foreground/60 uppercase tracking-wider">or</span>
+        <div className="flex-1 h-px bg-border/40" />
+      </div>
+
+      <div className="flex gap-3">
+        <Button
+          onClick={() => setGroupGateView("create")}
+          variant="outline"
+          className="flex-1 h-11 rounded-xl border-border/50 flex items-center gap-2 text-sm bg-transparent"
+        >
+          <Plus className="h-4 w-4" /> Create new
+        </Button>
+        <Button
+          onClick={() => setGroupGateView("join")}
+          variant="outline"
+          className="flex-1 h-11 rounded-xl border-border/50 flex items-center gap-2 text-sm bg-transparent"
+        >
+          <Users className="h-4 w-4" /> Join group
+        </Button>
+      </div>
+    </div>
+  )
+}
 
 function ChoiceView() {
   const { setGroupGateView, groups, backToMain } = useStore()
@@ -20,10 +81,10 @@ function ChoiceView() {
       {hasGroups && (
         <button
           type="button"
-          onClick={backToMain}
+          onClick={() => groups.length > 1 ? setGroupGateView("select") : backToMain()}
           className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors self-start"
         >
-          <ArrowLeft className="h-4 w-4" /> Back to current group
+          <ArrowLeft className="h-4 w-4" /> {groups.length > 1 ? "Back to group picker" : "Back to current group"}
         </button>
       )}
       <Button
@@ -48,21 +109,19 @@ function CreateGroupForm() {
   const [name, setName] = useState("")
   const [currency, setCurrency] = useState("USD")
   const [inviteCode, setInviteCode] = useState("")
-  const [copied, setCopied] = useState(false)
+  const [creating, setCreating] = useState(false)
 
   const isValid = name.trim().length > 0
 
-  const handleCreate = (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
-    const code = createGroup(name.trim(), currency)
-    setInviteCode(code)
-    setGroupGateView("invite-created")
-  }
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(inviteCode)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    setCreating(true)
+    const code = await createGroup(name.trim(), currency)
+    setCreating(false)
+    if (code) {
+      setInviteCode(code)
+      setGroupGateView("invite-created")
+    }
   }
 
   if (inviteCode) {
@@ -73,7 +132,7 @@ function CreateGroupForm() {
     <form onSubmit={handleCreate} className="flex flex-col gap-5">
       <button
         type="button"
-        onClick={() => setGroupGateView("choice")}
+        onClick={() => setGroupGateView(groups.length > 0 ? "select" : "choice")}
         className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors self-start"
       >
         <ArrowLeft className="h-4 w-4" /> Back
@@ -108,10 +167,10 @@ function CreateGroupForm() {
       </div>
       <Button
         type="submit"
-        disabled={!isValid}
+        disabled={!isValid || creating}
         className="h-12 rounded-xl text-base font-semibold bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 transition-all"
       >
-        Create group
+        {creating ? <Loader2 className="h-5 w-5 animate-spin" /> : "Create group"}
       </Button>
     </form>
   )
@@ -128,7 +187,6 @@ function InviteCreated({ code }: { code: string }) {
   }
 
   const handleEnter = () => {
-    // The group was already created in createGroup, just navigate to main
     store.backToMain()
   }
 
@@ -172,13 +230,17 @@ function JoinGroupForm() {
   const { setGroupGateView, joinGroup, groups } = useStore()
   const [code, setCode] = useState("")
   const [error, setError] = useState("")
+  const [joining, setJoining] = useState(false)
 
   const isValid = code.trim().length >= 4
 
-  const handleJoin = (e: React.FormEvent) => {
+  const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!isValid) { setError("Please enter a valid invite code"); return }
-    const success = joinGroup(code.trim())
+    setError("")
+    setJoining(true)
+    const success = await joinGroup(code.trim())
+    setJoining(false)
     if (!success) setError("Invalid invite code. Please try again.")
   }
 
@@ -186,7 +248,7 @@ function JoinGroupForm() {
     <form onSubmit={handleJoin} className="flex flex-col gap-5">
       <button
         type="button"
-        onClick={() => setGroupGateView("choice")}
+        onClick={() => setGroupGateView(groups.length > 0 ? "select" : "choice")}
         className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors self-start"
       >
         <ArrowLeft className="h-4 w-4" /> Back
@@ -205,10 +267,10 @@ function JoinGroupForm() {
       {error && <p className="text-sm text-destructive">{error}</p>}
       <Button
         type="submit"
-        disabled={!isValid}
+        disabled={!isValid || joining}
         className="h-12 rounded-xl text-base font-semibold bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 transition-all"
       >
-        Join group
+        {joining ? <Loader2 className="h-5 w-5 animate-spin" /> : "Join group"}
       </Button>
     </form>
   )
@@ -216,7 +278,9 @@ function JoinGroupForm() {
 
 export function GroupGate() {
   const { groupGateView, groups } = useStore()
-  const isAddingAnother = groups.length > 0
+
+  // Default to "select" view if user has groups, otherwise "choice"
+  const effectiveView = groupGateView === "choice" && groups.length > 0 ? "select" : groupGateView
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 bg-background relative overflow-hidden">
@@ -227,24 +291,29 @@ export function GroupGate() {
             R
           </div>
           <h1 className="text-2xl font-bold text-foreground tracking-tight text-balance text-center">
-            {groupGateView === "choice" && (isAddingAnother ? "Add another group" : "Get started")}
-            {groupGateView === "create" && "Create a group"}
-            {groupGateView === "join" && "Join a group"}
-            {groupGateView === "invite-created" && ""}
+            {effectiveView === "select" && "Your households"}
+            {effectiveView === "choice" && "Get started"}
+            {effectiveView === "create" && "Create a group"}
+            {effectiveView === "join" && "Join a group"}
+            {effectiveView === "invite-created" && ""}
           </h1>
-          {groupGateView === "choice" && (
+          {effectiveView === "select" && (
             <p className="text-sm text-muted-foreground text-center">
-              {isAddingAnother
-                ? `You have ${groups.length} group${groups.length > 1 ? "s" : ""}. Add another below.`
-                : "Create or join a group to start splitting expenses"}
+              {groups.length} household{groups.length !== 1 ? "s" : ""} available
+            </p>
+          )}
+          {effectiveView === "choice" && (
+            <p className="text-sm text-muted-foreground text-center">
+              Create or join a group to start splitting expenses
             </p>
           )}
         </div>
         <div className="glass-card p-6">
-          {groupGateView === "choice" && <ChoiceView />}
-          {groupGateView === "create" && <CreateGroupForm />}
-          {groupGateView === "join" && <JoinGroupForm />}
-          {groupGateView === "invite-created" && <InviteCreated code="" />}
+          {effectiveView === "select" && <GroupSelector />}
+          {effectiveView === "choice" && <ChoiceView />}
+          {effectiveView === "create" && <CreateGroupForm />}
+          {effectiveView === "join" && <JoinGroupForm />}
+          {effectiveView === "invite-created" && <InviteCreated code="" />}
         </div>
       </div>
     </div>

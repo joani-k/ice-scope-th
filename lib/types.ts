@@ -75,7 +75,7 @@ export interface NetBalance {
 
 export type AppScreen = "auth" | "group-gate" | "main"
 export type AuthView = "login" | "signup" | "forgot" | "reset-success"
-export type GroupGateView = "choice" | "create" | "join" | "invite-created"
+export type GroupGateView = "choice" | "create" | "join" | "invite-created" | "select"
 export type MainTab = "transactions" | "calendar" | "debts" | "people" | "permissions" | "highlights" | "ai" | "account"
 
 export const CURRENCIES = [
