@@ -4,6 +4,7 @@ import {
   streamText,
   type UIMessage,
 } from "ai"
+import { openai } from "@ai-sdk/openai"
 
 export const maxDuration = 30
 
@@ -82,7 +83,7 @@ Recurring expenses: ${transactions.filter(t => t.isRecurring).length} out of ${t
   }
 
   const result = streamText({
-    model: "openai/gpt-4o-mini",
+    model: openai("gpt-4o-mini"),
     system: systemPrompt,
     messages: await convertToModelMessages(messages),
     abortSignal: req.signal,
@@ -93,3 +94,4 @@ Recurring expenses: ${transactions.filter(t => t.isRecurring).length} out of ${t
     consumeSseStream: consumeStream,
   })
 }
+
