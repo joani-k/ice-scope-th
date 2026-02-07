@@ -1,6 +1,9 @@
-# 🏠💸 Roomies Ledger
+  # 🏠💸 Roomies Ledger
 
-![Roomies Ledger banner](assets/roomies-ledger.png)
+<p align="center">
+  <img src="assets/roomies-ledger.png" alt="Roomies Ledger banner" width="500" />
+</p>
+
 
 **A modern expense-splitting app for roommates — track shared purchases, split bills (equal/custom/%), and settle up fast.**  
 Built for hackathons, dorms, apartments, and anyone tired of “who owes who?” texts.
