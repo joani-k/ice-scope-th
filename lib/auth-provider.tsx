@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react"
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react"
 import { createClient } from "@/lib/supabase/client"
 import type { User } from "@supabase/supabase-js"
 
@@ -20,6 +20,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<AuthState["profile"]>(null)
   const [loading, setLoading] = useState(true)
+  const currentUserIdRef = useRef<string | null>(null)
 
   const supabase = createClient()
 
@@ -38,6 +39,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         const currentUser = session?.user ?? null
+        const newId = currentUser?.id ?? null
+
+        // Skip if the user hasn't actually changed (prevents reload on tab focus)
+        if (newId === currentUserIdRef.current && event !== "SIGNED_OUT") {
+          setLoading(false)
+          return
+        }
+
+        currentUserIdRef.current = newId
         setUser(currentUser)
         if (currentUser) {
           await fetchProfile(currentUser.id)
@@ -50,6 +60,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Initial session check
     supabase.auth.getUser().then(({ data: { user: u } }) => {
+      const newId = u?.id ?? null
+      if (newId === currentUserIdRef.current) {
+        setLoading(false)
+        return
+      }
+      currentUserIdRef.current = newId
       setUser(u)
       if (u) {
         fetchProfile(u.id)

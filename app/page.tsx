@@ -7,21 +7,27 @@ import { MainShell } from "@/components/main-shell"
 import { Loader2 } from "lucide-react"
 
 export default function Page() {
-  const { appScreen, groups, loadingData } = useStore()
+  const { appScreen } = useStore()
 
-  if (loadingData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    )
+  if (appScreen === "auth") {
+    return <AuthScreen />
   }
 
-  if (appScreen === "auth") return <AuthScreen />
-  if (appScreen === "group-gate") return <GroupGate />
-  if (groups.length === 0) return <GroupGate />
-  return <MainShell />
+  if (appScreen === "group-gate") {
+    return <GroupGate />
+  }
+
+  if (appScreen === "main") {
+    return <MainShell />
+  }
+
+  // Fallback loading state (should not normally reach here)
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="flex flex-col items-center gap-3">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Loading...</p>
+      </div>
+    </div>
+  )
 }
