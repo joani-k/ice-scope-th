@@ -201,3 +201,4 @@ Row-level security is enabled for core tables. Policies ensure:
 ### 1) Install deps
 ```bash
 npm install
+```
